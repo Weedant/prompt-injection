@@ -54,8 +54,9 @@ RULES = [
     # Jailbreak patterns
     (r'\bDAN\s+mode\b', "jailbreak"),
     (r'\bdo\s+anything\s+now\b', "jailbreak"),
-    (r'\bfor\s+educational\s+purposes\s+only\b', "jailbreak_pretext"),
-    (r'\bhypothetically\s+speaking\b', "jailbreak_pretext"),
+    # Removed overly broad jailbreak pretext patterns that cause false positives
+    # (r'\bfor\s+educational\s+purposes\s+only\b', "jailbreak_pretext"),
+    # (r'\bhypothetically\s+speaking\b', "jailbreak_pretext"),
 
     # Prompt injection markers
     (r'<\|?(?:im_start|im_end|endoftext)\|?>', "prompt_injection_token"),
@@ -73,29 +74,55 @@ def is_suspicious(text: str) -> dict:
     strong_rules = {
         "ignore_instruction", "do_not_follow", "disregard", "forget_instruction",
         "exfil_system_prompt", "credential_extraction", "password_prompt",
-        "jailbreak", "prompt_injection_token", "urgent_credential_request"
+        "jailbreak", "prompt_injection_token", "urgent_credential_request", "override_instruction"
     }
+
+    # Medium-confidence rules (only boost score, don't auto-flag)
+    medium_rules = {"role_manipulation", "jailbreak_pretext"}
+
     strong_rule = any(r in strong_rules for r in rule_hits)
+    medium_rule = any(r in medium_rules for r in rule_hits)
+
+    # Detect legitimate research indicators
+    legitimate_indicators = [
+        "data security", "cybersecurity research", "academic study",
+        "ethical hacking", "penetration testing", "security audit"
+    ]
+    has_legitimate_context = any(ind in text.lower() for ind in legitimate_indicators)
 
     emb = sbert.encode([text])
     prob = clf.predict_proba(emb)[0, 1]
 
+    # Adjust threshold for legitimate research context
+    threshold_adjusted = threshold * 1.2 if (has_legitimate_context and not strong_rule) else threshold
+
     final_prob = prob
     reason = "model"
+
     if strong_rule:
         final_prob = max(prob, 0.95)
         reason = "strong_rule"
+    elif medium_rule:
+        # Only boost slightly for medium rules, don't auto-flag
+        final_prob = max(prob, min(prob * 1.3, 0.85))
+        reason = "medium_rule_boost"
     elif rule_hits:
         final_prob = max(prob, 0.7)
         reason = "rule_boost"
 
-    suspicious = strong_rule or prob >= threshold
+    # Adjust reason if legitimate context applied
+    if has_legitimate_context and not strong_rule:
+        reason = f"{reason}_legitimate_context"
+
+    # Only flag as suspicious if strong rule OR high model score (with adjusted threshold)
+    suspicious = strong_rule or prob >= threshold_adjusted
 
     return {
         "suspicious": bool(suspicious),
         "score": float(final_prob),
         "model_prob": float(prob),
-        "threshold": float(threshold),
+        "threshold": float(threshold_adjusted),
         "rule_hits": rule_hits,
-        "reason": reason
+        "reason": reason,
+        "legitimate_context": bool(has_legitimate_context)
     }
