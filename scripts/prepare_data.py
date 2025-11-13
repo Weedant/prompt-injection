@@ -17,7 +17,7 @@ import sys
 RAW_CSV_PATH = Path("data/raw/test.csv")
 OUTPUT_PATH = Path("data/processed/filtered_data.csv")
 SAMPLE_PATH = Path("data/processed/filtered_sample.csv")
-MAX_ROWS = 3000
+MAX_ROWS = 65000
 DEFAULT_SOURCE = "huggingface"
 
 # --- HELPERS ---

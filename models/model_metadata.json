@@ -1,9 +1,9 @@
 {
   "classifier": "LogisticRegression",
   "embedding_model": "all-MiniLM-L6-v2",
-  "threshold": 0.7059260606765747,
-  "roc_auc": 0.9215686274509803,
-  "train_size": 2400,
-  "test_size": 600,
-  "datetime": "2025-11-13T01:22:15.922640"
+  "threshold": 0.6389773488044739,
+  "roc_auc": 0.9707863273158229,
+  "train_size": 52000,
+  "test_size": 13000,
+  "datetime": "2025-11-13T12:25:44.482670"
 }

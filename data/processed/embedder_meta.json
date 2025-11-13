@@ -1,7 +1,7 @@
 {
   "model": "all-MiniLM-L6-v2",
   "batch_size": 64,
-  "rows": 3000,
+  "rows": 65000,
   "dim": 384,
-  "time_s": 206.44038224220276
+  "time_s": 1908.6772418022156
 }

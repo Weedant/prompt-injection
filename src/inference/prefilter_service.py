@@ -1,3 +1,6 @@
+# ============================================================================
+# src/inference/prefilter_service.py
+# ============================================================================
 import joblib
 import re
 import json
@@ -38,8 +41,10 @@ RULES = [
 
     # Credential/secret extraction
     (r'\b(what\s+is|tell\s+me|reveal|show\s+me|give\s+me)\s+(your|the|my)\s+(password|api\s+key|secret|token|credentials?)\b', "credential_extraction"),
+    (r'\b(need|want|require|get|obtain)\s+(your|the|my|a)?\s*(password|api\s+key|secret|token|credentials?)\b', "credential_extraction"),
     (r'\bpassword\s*[:=?]\s*', "password_prompt"),
     (r'\b(access|admin|secret|api)\s+(key|token|password|code)\b', "credential_extraction"),
+    (r'\b(urgent|emergency|immediately|quickly|asap).*\b(password|key|token|secret|credentials?)\b', "urgent_credential_request"),
 
     # Role manipulation
     (r'\byou\s+are\s+now\s+(a|an|acting\s+as)\b', "role_manipulation"),
@@ -68,7 +73,7 @@ def is_suspicious(text: str) -> dict:
     strong_rules = {
         "ignore_instruction", "do_not_follow", "disregard", "forget_instruction",
         "exfil_system_prompt", "credential_extraction", "password_prompt",
-        "jailbreak", "prompt_injection_token"
+        "jailbreak", "prompt_injection_token", "urgent_credential_request"
     }
     strong_rule = any(r in strong_rules for r in rule_hits)
 
