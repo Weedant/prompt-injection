@@ -28,15 +28,18 @@ embedder_meta = json.loads(EMBEDDER_META_PATH.read_text())
 sbert = SentenceTransformer(embedder_meta["model"])
 
 RULES = [
-    # Instruction override
-    (r'\bignore\s+(previous|earlier|prior|all)\s+(instructions?|prompts?|commands?)\b', "ignore_instruction"),
+     # Instruction override
+    (r'\bignore\s+all\s+previous\s+instructions?\b', "ignore_instruction"),
+    (r'\bignore\s+(previous|earlier|prior)\s+(instructions?|prompts?|commands?)\b', "ignore_instruction"),
     (r'\bdo\s+not\s+(follow|obey|listen\s+to)\b', "do_not_follow"),
     (r'\bdisregard\s+(all\s+)?(instructions?|previous|above)\b', "disregard"),
     (r'\bforget\s+(everything|all|previous|your)\b', "forget_instruction"),
     (r'\boverride\s+(previous|system|your)\b', "override_instruction"),
 
     # System prompt extraction
-    (r'\b(print|show|reveal|display|tell\s+me|give\s+me)\s+(the\s+)?(system\s+prompt|initial\s+prompt|your\s+instructions)\b', "exfil_system_prompt"),
+    (r'\bprint\s+your\s+system\s+prompt\b', "exfil_system_prompt"),
+    (r'\bshow\s+me\s+your\s+(original|initial)\s+instructions?\b', "exfil_system_prompt"),
+    (r'\b(reveal|display|tell\s+me|give\s+me)\s+(the\s+)?(system\s+prompt|initial\s+prompt|your\s+instructions)\b', "exfil_system_prompt"),
     (r'\bwhat\s+(are|were)\s+your\s+(original|initial|system)\s+(instructions?|prompts?)\b', "exfil_system_prompt"),
 
     # Credential/secret extraction
